@@ -14,6 +14,25 @@
 
 using namespace std;
 
+
+#ifdef _WIN32
+#include <crtdbg.h>
+
+static void detect_memory_leaks(int on_off)
+{
+    int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    if (!on_off)
+        flags &= ~_CRTDBG_LEAK_CHECK_DF;
+    else
+    {
+        flags |= _CRTDBG_LEAK_CHECK_DF;
+    }
+    _CrtSetDbgFlag(flags);
+}
+#else
+void detect_memory_leaks(int on_off) {}
+#endif
+
 int main(int argc, char* argv[])
 {
    // usage: recvlive [server_port]
@@ -23,6 +42,7 @@ int main(int argc, char* argv[])
       return 0;
    }
 
+   detect_memory_leaks(true);
    // use this function to initialize the UDT library
    srt_startup();
 
@@ -169,7 +189,7 @@ int main(int argc, char* argv[])
                   }
                   break;
                }
-               // cout << ret << " bytes received" << endl;
+                cout << ret << " bytes received" << endl;
             }
          }
       }

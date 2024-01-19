@@ -27,12 +27,32 @@
 
 #include "srt.h"
 
+#ifdef _WIN32
+#include <crtdbg.h>
+
+static void detect_memory_leaks(int on_off)
+{
+    int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    if (!on_off)
+        flags &= ~_CRTDBG_LEAK_CHECK_DF;
+    else
+    {
+        flags |= _CRTDBG_LEAK_CHECK_DF;
+    }
+    _CrtSetDbgFlag(flags);
+}
+#else
+void detect_memory_leaks(int on_off) {}
+#endif
+
 int main(int argc, char** argv)
 {
     int ss, st;
     struct sockaddr_in sa;
     int yes = 1;
     const char message [] = "This message should be sent to the other side";
+
+    detect_memory_leaks(1);
 
     if (argc != 3) {
       fprintf(stderr, "Usage: %s <host> <port>\n", argv[0]);
@@ -90,8 +110,11 @@ int main(int argc, char** argv)
         usleep(1000);   // 1 ms
     }
 
-
+#if defined(_WIN32)
+    Sleep(1000);
+#else
     sleep(1); // 1 second to give it enough time to receive all messages
+#endif
     printf("srt close\n");
     st = srt_close(ss);
     if (st == SRT_ERROR)

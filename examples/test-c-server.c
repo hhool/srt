@@ -22,6 +22,24 @@
 
 #include "srt.h"
 
+#ifdef _WIN32
+#include <crtdbg.h>
+
+static void detect_memory_leaks(int on_off)
+{
+    int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    if (!on_off)
+        flags &= ~_CRTDBG_LEAK_CHECK_DF;
+    else
+    {
+        flags |= _CRTDBG_LEAK_CHECK_DF;
+    }
+    _CrtSetDbgFlag(flags);
+}
+#else
+void detect_memory_leaks(int on_off) {}
+#endif
+
 int main(int argc, char** argv)
 {
     int ss, st;
@@ -33,6 +51,8 @@ int main(int argc, char** argv)
       fprintf(stderr, "Usage: %s <host> <port>\n", argv[0]);
       return 1;
     }
+
+    detect_memory_leaks(1);
 
     printf("srt startup\n");
     srt_startup();
